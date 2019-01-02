@@ -14,3 +14,12 @@
     kubectl apply -f echo_ingress.yaml
     curl echo1.do.houseofmoran.io
     curl echo2.do.houseofmoran.io
+
+    kubectl -n kube-system create serviceaccount tiller
+    kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+    helm init --service-account tiller
+    kubectl get pods --namespace kube-system
+    helm install --name cert-manager --namespace kube-system stable/cert-manager
+    kubectl create -f prod_issuer.yaml
+    kubectl apply -f echo_ingress.yaml
+    kubectl describe certificate letsencrypt-prod
