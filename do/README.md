@@ -23,3 +23,10 @@
     kubectl create -f prod_issuer.yaml
     kubectl apply -f echo_ingress.yaml
     kubectl describe certificate letsencrypt-prod
+
+    doctl kubernetes cluster delete do-k8s-play-ingress
+
+Also need to:
+
+- Manually delete DNS names
+- Manually delete created load-balancer
