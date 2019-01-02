@@ -11,6 +11,9 @@
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml
     kubectl get svc --namespace=ingress-nginx
+
+Manually create mappings from echo1.do.houseofmoran.io and echo2.do.houseofmoran.io to the IP address of load-balancer
+
     kubectl apply -f echo_ingress.yaml
     curl echo1.do.houseofmoran.io
     curl echo2.do.houseofmoran.io
