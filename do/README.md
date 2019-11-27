@@ -2,17 +2,16 @@
 
 ## Create Cluster
 
-    CLUSTER_NAME=cluster-with-secure-ingress-and-monitoring
+    CLUSTER_NAME=ccluster-20191127
     REGION_NAME=lon1
     doctl kubernetes cluster create ${CLUSTER_NAME} --region ${REGION_NAME}
     kubectl config use-context do-${REGION_NAME}-${CLUSTER_NAME}
 
-## Install helm / tiller
+## Install helm locally
 
-    kubectl -n kube-system create serviceaccount tiller
-    kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
-    helm init --service-account tiller
-    kubectl get pods --namespace kube-system
+    brew install helm
+    helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    helm repo update
 
 ## Setup monitoring
 
@@ -34,9 +33,26 @@
 
 ## Setup cert-manager with prod and staging issuers
 
-    helm install --name cert-manager --namespace kube-system stable/cert-manager
+    kubectl apply -f certmanager/00-crds.yaml
+    kubectl create namespace cert-manager
+
+    kubectl get pods --namespace cert-manager
+
+    helm repo add jetstack https://charts.jetstack.io
+    helm repo update
+    helm install jetstack/cert-manager --generate-name -n cert-manager
+
+Test setup
+
+    kubectl apply -f certmanager/test-resources.yaml
+    kubectl describe certificate -n cert-manager-test
+    kubectl delete -f certmanager/test-resources.yaml
+
     kubectl create -f certmanager/letsencrypt-staging-issuer.yaml
+    kubectl describe clusterissuer letsencrypt-staging
+
     kubectl create -f certmanager/letsencrypt-prod-issuer.yaml
+    kubectl describe clusterissuer letsencrypt-prod
 
 ## Delete cluster
 
