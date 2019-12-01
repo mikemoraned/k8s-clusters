@@ -7,6 +7,17 @@
     doctl kubernetes cluster create ${CLUSTER_NAME} --region ${REGION_NAME}
     kubectl config use-context do-${REGION_NAME}-${CLUSTER_NAME}
 
+## Setup Weave Scope
+
+Install
+
+    curl "https://cloud.weave.works/k8s/v1.10/scope.yaml" > weave_scope/scope.yaml
+    kubectl apply -f weave_scope/scope.yaml
+
+View
+
+    kubectl port-forward -n weave "$(kubectl get -n weave pod --selector=weave-scope-component=app -o jsonpath='{.items..metadata.name}')" 4040
+
 ## Install helm locally
 
     brew install helm
