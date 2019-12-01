@@ -2,7 +2,7 @@
 
 ## Create Cluster
 
-    CLUSTER_NAME=ccluster-20191127
+    CLUSTER_NAME=cluster-20191201
     REGION_NAME=lon1
     doctl kubernetes cluster create ${CLUSTER_NAME} --region ${REGION_NAME}
     kubectl config use-context do-${REGION_NAME}-${CLUSTER_NAME}
@@ -12,18 +12,6 @@
     brew install helm
     helm repo add stable https://kubernetes-charts.storage.googleapis.com/
     helm repo update
-
-## Setup monitoring
-
-(Based on [Kubernetes Tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-digitalocean-kubernetes-cluster-monitoring-with-helm-and-prometheus-operator))
-
-    helm install --namespace monitoring --name doks-cluster-monitoring -f monitoring/custom-values.yaml stable/prometheus-operator
-
-### Access monitoring locally
-
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-pr-prometheus 9090:9090 &
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-grafana 9091:80 &
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-pr-alertmanager 9093:9093 &
 
 ## Setup ingress
 
