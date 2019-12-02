@@ -2,29 +2,27 @@
 
 ## Create Cluster
 
-    CLUSTER_NAME=cluster-with-secure-ingress-and-monitoring
+    CLUSTER_NAME=cluster-20191201
     REGION_NAME=lon1
     doctl kubernetes cluster create ${CLUSTER_NAME} --region ${REGION_NAME}
     kubectl config use-context do-${REGION_NAME}-${CLUSTER_NAME}
 
-## Install helm / tiller
+## Setup Weave Scope
 
-    kubectl -n kube-system create serviceaccount tiller
-    kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
-    helm init --service-account tiller
-    kubectl get pods --namespace kube-system
+Install
 
-## Setup monitoring
+    curl "https://cloud.weave.works/k8s/v1.10/scope.yaml" > weave_scope/scope.yaml
+    kubectl apply -f weave_scope/scope.yaml
 
-(Based on [Kubernetes Tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-digitalocean-kubernetes-cluster-monitoring-with-helm-and-prometheus-operator))
+View
 
-    helm install --namespace monitoring --name doks-cluster-monitoring -f monitoring/custom-values.yaml stable/prometheus-operator
+    kubectl port-forward -n weave "$(kubectl get -n weave pod --selector=weave-scope-component=app -o jsonpath='{.items..metadata.name}')" 4040
 
-### Access monitoring locally
+## Install helm locally
 
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-pr-prometheus 9090:9090 &
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-grafana 9091:80 &
-    kubectl port-forward -n monitoring svc/doks-cluster-monitoring-pr-alertmanager 9093:9093 &
+    brew install helm
+    helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+    helm repo update
 
 ## Setup ingress
 
@@ -34,9 +32,26 @@
 
 ## Setup cert-manager with prod and staging issuers
 
-    helm install --name cert-manager --namespace kube-system stable/cert-manager
+    kubectl apply -f certmanager/00-crds.yaml
+    kubectl create namespace cert-manager
+
+    kubectl get pods --namespace cert-manager
+
+    helm repo add jetstack https://charts.jetstack.io
+    helm repo update
+    helm install jetstack/cert-manager --generate-name -n cert-manager
+
+Test setup
+
+    kubectl apply -f certmanager/test-resources.yaml
+    kubectl describe certificate -n cert-manager-test
+    kubectl delete -f certmanager/test-resources.yaml
+
     kubectl create -f certmanager/letsencrypt-staging-issuer.yaml
+    kubectl describe clusterissuer letsencrypt-staging
+
     kubectl create -f certmanager/letsencrypt-prod-issuer.yaml
+    kubectl describe clusterissuer letsencrypt-prod
 
 ## Delete cluster
 
